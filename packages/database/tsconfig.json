@@ -8,7 +8,7 @@
       "@repo/database/*": ["../database/dist/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "generated"],
   "exclude": [
     "node_modules",
     "dist"

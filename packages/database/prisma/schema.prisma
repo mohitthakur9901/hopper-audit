@@ -51,22 +51,6 @@ enum DetectionSeverity {
 // STATION
 // ─────────────────────────────────────────────
 
-model Station {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String   @db.VarChar(150)
-  ward      String   @db.VarChar(100)
-  address   String   @db.Text
-  latitude  Decimal? @db.Decimal(9, 6)
-  longitude Decimal? @db.Decimal(9, 6)
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  users       User[]
-  inspections Inspection[]
-
-  @@index([ward])
-  @@map("stations")
-}
 
 
 // ─────────────────────────────────────────────
@@ -80,14 +64,14 @@ model User {
   passwordHash String   @map("password_hash") @db.Text
   role         UserRole @default(SUPERVISOR)
 
-  stationId String  @map("station_id") @db.Uuid
-  station   Station @relation(fields: [stationId], references: [id], onDelete: Restrict)
+  accessToken  String?  @map("access_token") @db.Text
+  refreshToken String?  @map("refresh_token") @db.Text
+
 
   createdAt DateTime @default(now()) @map("created_at")
 
   inspections Inspection[]
 
-  @@index([stationId])
   @@map("users")
 }
 
@@ -99,9 +83,7 @@ model User {
 model Inspection {
   id String @id @default(uuid()) @db.Uuid
 
-  stationId String  @map("station_id") @db.Uuid
-  station   Station @relation(fields: [stationId], references: [id], onDelete: Restrict)
-
+ 
   userId String @map("user_id") @db.Uuid
   user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
 
@@ -118,7 +100,7 @@ model Inspection {
 
   media Media[]
 
-  @@index([stationId])
+
   @@index([userId])
   @@index([status])
   @@index([createdAt])

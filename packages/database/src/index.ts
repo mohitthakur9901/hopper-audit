@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "../generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis as unknown as {
@@ -48,7 +48,7 @@ function createPrismaClient() {
       "[database] Failed to initialize Prisma client with adapter:",
       err,
     );
-    return new PrismaClient();
+    return new PrismaClient({} as any);
   }
 }
 
@@ -58,4 +58,4 @@ if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 
-export * from "@prisma/client";
+export * from "../generated/prisma/client.js";

@@ -4,8 +4,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@repo/database": ["../database/dist/index.d.ts"],
-      "@repo/database/*": ["../database/dist/*"]
+      "@repo/database": ["../database/dist/src/index.d.ts"],
+      "@repo/database/*": ["../database/dist/src/*"]
     }
   },
   "include": ["src"],

@@ -18,6 +18,16 @@ services:
       - ./data:/app/data
     environment:
       FLOCI_STORAGE_MODE: hybrid
+
+  redis:
+    image: redis:7
+    container_name: hopper-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data:/data
+    
+  
     
 
 volumes:

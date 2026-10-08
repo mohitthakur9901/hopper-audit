@@ -1,12 +1,10 @@
 {
-  "extends": "../../packages/typescript-config/base.json",
+  "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@repo/ai-core": ["../../packages/ai-core/src/index.ts"]
-    }
+    "outDir": "dist",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
-  "include": ["src/**/*"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
