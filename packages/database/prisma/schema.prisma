@@ -1,0 +1,179 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  SUPERVISOR
+}
+
+enum InspectionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum InspectionDecision {
+  PASS
+  HOLD
+  REJECT
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum DetectionSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+
+// ─────────────────────────────────────────────
+// STATION
+// ─────────────────────────────────────────────
+
+model Station {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(150)
+  ward      String   @db.VarChar(100)
+  address   String   @db.Text
+  latitude  Decimal? @db.Decimal(9, 6)
+  longitude Decimal? @db.Decimal(9, 6)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users       User[]
+  inspections Inspection[]
+
+  @@index([ward])
+  @@map("stations")
+}
+
+
+// ─────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.Text
+  role         UserRole @default(SUPERVISOR)
+
+  stationId String  @map("station_id") @db.Uuid
+  station   Station @relation(fields: [stationId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  inspections Inspection[]
+
+  @@index([stationId])
+  @@map("users")
+}
+
+
+// ─────────────────────────────────────────────
+// INSPECTION
+// ─────────────────────────────────────────────
+
+model Inspection {
+  id String @id @default(uuid()) @db.Uuid
+
+  stationId String  @map("station_id") @db.Uuid
+  station   Station @relation(fields: [stationId], references: [id], onDelete: Restrict)
+
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  status InspectionStatus @default(PENDING)
+
+  decision InspectionDecision?
+
+  contaminationScore Decimal? @map("contamination_score") @db.Decimal(5, 2)
+
+  processingTimeMs Int? @map("processing_time_ms")
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+
+  media Media[]
+
+  @@index([stationId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("inspections")
+}
+
+
+// ─────────────────────────────────────────────
+// MEDIA
+// ─────────────────────────────────────────────
+
+model Media {
+  id String @id @default(uuid()) @db.Uuid
+
+  inspectionId String     @map("inspection_id") @db.Uuid
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  type MediaType
+
+  originalUrl  String  @map("original_url") @db.Text
+  annotatedUrl String? @map("annotated_url") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  detections Detection[]
+
+  @@index([inspectionId])
+  @@map("media")
+}
+
+
+// ─────────────────────────────────────────────
+// DETECTION
+// ─────────────────────────────────────────────
+
+model Detection {
+  id String @id @default(uuid()) @db.Uuid
+
+  mediaId String @map("media_id") @db.Uuid
+  media   Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  category   String           @db.VarChar(100)
+  confidence Decimal          @db.Decimal(5, 4)
+  severity   DetectionSeverity
+
+  // Normalized bounding box coordinates: 0.0 → 1.0
+  x      Decimal @db.Decimal(10, 6)
+  y      Decimal @db.Decimal(10, 6)
+  width  Decimal @db.Decimal(10, 6)
+  height Decimal @db.Decimal(10, 6)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([mediaId])
+  @@index([category])
+  @@index([severity])
+  @@map("detections")
+}
